@@ -84,7 +84,6 @@ varImpPlot(QKForestAll,type = 2,
            main="WesForestAllv", # title
            cex =0.7) # font size
 
-par(mfrow = c(1,3))
 partial(QKForestAll, pred.var = "NumDeliv", # target and predictor
         prob = TRUE, # probabilities on yaxis
         which.class = 2, # predict level 2, "Y"
