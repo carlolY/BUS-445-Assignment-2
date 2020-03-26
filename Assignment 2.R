@@ -19,7 +19,7 @@ QK = as.data.frame(QK)
 View(QK)
 names(QK)
 QK = QK %>% select(-c("...1", "custid", "Pcode"))
-QK$LastOrder = as.numeric(QK$LastOrder)
+QK$LastOrder = as.numeric(as.Date(QK$LastOrder))
 
 # Convert to numeric in order to show %NA
 QK$DA_Over60 = as.numeric(QK$DA_Over60, na.omit = T)
@@ -81,7 +81,7 @@ QKForestAll[["confusion"]]
 
 # Variable importance
 varImpPlot(QKForestAll,type = 2,
-           main="WesForestAllv", # title
+           main="QKForestAll", # title
            cex =0.7) # font size
 
 partial(QKForestAll, pred.var = "NumDeliv", # target and predictor
@@ -200,7 +200,12 @@ QKNetAllv <- Nnet(formula = SUBSCRIBE ~ Disc + LastOrder + DA_Income + DA_Under2
                    data = filter(QK2, Sample =="Estimation"),
                    decay = 0.15, size = 4)
 
-lift.chart(modelList = c("QKStep","QKNetAllv"),
+lift.chart(modelList = c("QKStep","QKNetAllv", "QKForestAll"),
+           data = filter(QK2, Sample == "Validation"),
+           targLevel = "Y", trueResp = 0.01, type = "cumulative",
+           sub = "Validation")
+
+lift.chart(modelList = c("QKStep"),
            data = filter(QK2, Sample == "Validation"),
            targLevel = "Y", trueResp = 0.01, type = "cumulative",
            sub = "Validation")
