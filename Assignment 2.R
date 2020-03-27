@@ -19,12 +19,12 @@ QK = as.data.frame(QK)
 View(QK)
 names(QK)
 QK = QK %>% select(-c("...1", "custid", "Pcode"))
-QK$LastOrder = as.numeric(as.Date(QK$LastOrder))
+QK$LastOrder = as.numeric(as.Date(QK$LastOrder)) ## Number of days since 1970-01-01
 
 # Convert to numeric in order to show %NA
-QK$DA_Over60 = as.numeric(QK$DA_Over60, na.omit = T)
-QK$DA_Single = as.numeric(QK$DA_Single, na.omit = T)
-QK$DA_Income = as.numeric(QK$DA_Income, na.omit = T)
+QK$DA_Over60 = as.numeric(QK$DA_Over60)
+QK$DA_Single = as.numeric(QK$DA_Single)
+QK$DA_Income = as.numeric(QK$DA_Income)
 variable.summary(QK)
 
 QK$MealsPerDeliv = as.factor(QK$MealsPerDeliv)
@@ -56,10 +56,11 @@ QK$Disc <- recode_factor(QK$Disc, # Factor of interest
 
 table(QK$Title)
 table(QK$Weeks3Meals)
-QK$Weeks3Meals = NULL
 QK$Title = NULL
 
 QK2 <- na.omit(QK)
+(resp = 1 - (sum(QK2[,"Weeks3Meals"] == "NA")/nrow(QK2)))
+QK2$Weeks3Meals = NULL
 
 corrMatrix <- cor(select_if(QK2, is.numeric)) # see ?dplyr::select_if
 
@@ -171,13 +172,13 @@ summary(QKStep)
 ## Lift Chart
 lift.chart(modelList = c("QK.log", "QKStep"),
            data = filter(QK2, Sample == "Validation"),
-           targLevel = "Y", trueResp = 0.01, type = "cumulative",
+           targLevel = "Y", trueResp = resp, type = "cumulative",
            sub = "Validation")
 
 # Compare forests and regression models
 lift.chart(modelList = c("QKStep","QKForestAll"),
            data = filter(QK2, Sample == "Validation"),
-           targLevel = "Y", trueResp = 0.01, type = "cumulative",
+           targLevel = "Y", trueResp = resp, type = "cumulative",
            sub = "Validation")
 
 
@@ -190,7 +191,7 @@ QKNnet4 <- Nnet(formula = SUBSCRIBE ~ Disc + LastOrder + DA_Income + DA_Under20 
 
 lift.chart(modelList = c("QKStep","QKNnet4"),
            data = filter(QK2, Sample == "Validation"),
-           targLevel = "Y", trueResp = 0.01, type = "cumulative",
+           targLevel = "Y", trueResp = resp, type = "cumulative",
            sub = "Validation")
 
 ## All variables in nnet
@@ -202,10 +203,10 @@ QKNetAllv <- Nnet(formula = SUBSCRIBE ~ Disc + LastOrder + DA_Income + DA_Under2
 
 lift.chart(modelList = c("QKStep","QKNetAllv", "QKForestAll"),
            data = filter(QK2, Sample == "Validation"),
-           targLevel = "Y", trueResp = 0.01, type = "cumulative",
+           targLevel = "Y", trueResp = resp, type = "cumulative",
            sub = "Validation")
 
 lift.chart(modelList = c("QKStep"),
            data = filter(QK2, Sample == "Validation"),
-           targLevel = "Y", trueResp = 0.01, type = "cumulative",
+           targLevel = "Y", trueResp = resp, type = "cumulative",
            sub = "Validation")
