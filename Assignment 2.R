@@ -16,7 +16,6 @@ source("BCA_functions_source_file.R")
 
 QK = read_excel("QK_2020.xlsx")
 QK = as.data.frame(QK)
-View(QK)
 names(QK)
 QK = QK %>% select(-c("...1", "custid", "Pcode"))
 QK$LastOrder = as.numeric(as.Date(QK$LastOrder)) ## Number of days since 1970-01-01
@@ -146,10 +145,13 @@ QK$DA_Income.Cat <- binVariable(QK$DA_Income, bins = 10,
 QK$NumDeliv.Cat <- binVariable(QK$NumDeliv, bins = 10,
                                 method = "interval",
                                 labels = NULL)
-
+QK$Veggie.Cat <- binVariable(QK$Veggie, bins = 10,
+                               method = "interval",
+                               labels = NULL)
 
 plotmeans(SUBSCRIBE.num ~ DA_Income.Cat, data = QK)
 plotmeans(SUBSCRIBE.num ~ NumDeliv.Cat, data = QK)
+plotmeans(SUBSCRIBE.num ~ Veggie.Cat, data = QK)
 
 QK2$DA_Income2 = I(QK2$DA_Income^2)
 QK2$NumDeliv2 = I(QK2$NumDeliv^2)
@@ -210,3 +212,33 @@ lift.chart(modelList = c("QKStep"),
            data = filter(QK2, Sample == "Validation"),
            targLevel = "Y", trueResp = resp, type = "cumulative",
            sub = "Validation")
+
+########################
+
+variable.summary(QK)
+QK$Weeks3Meals = as.numeric(QK$Weeks3Meals)
+
+QK3 = QK %>% filter(!is.na(Weeks3Meals))
+variable.summary(QK3)
+QK3$Weeks3Meals = as.factor(QK3$Weeks3Meals)
+QK3$Weeks3Meals = recode_factor(QK3$Weeks3Meals,
+                                `5` = "5+",
+                                `6` = "5+",
+                                `7` = "5+",
+                                `8` = "5+",
+                                `9` = "5+")
+QK3$Weeks3Meals = factor(QK3$Weeks3Meals,levels(QK3$Weeks3Meals)[c(2,3,4,5,6,1)])
+table(QK3$Weeks3Meals)
+
+table(QK3$Weeks3Meals, QK3$DA_Income.Cat)
+plotmeans(DA_Income ~ Weeks3Meals, data = QK3)
+plotmeans(NumDeliv ~ Weeks3Meals, data = QK3)
+plotmeans(DA_Under20~ Weeks3Meals, data = QK3)
+plotmeans(Healthy ~ Weeks3Meals, data = QK3)
+plotmeans(Veggie ~ Weeks3Meals, data = QK3)
+plotmeans(Meaty ~ Weeks3Meals, data = QK3)
+plotmeans(Special ~ Weeks3Meals, data = QK3)
+prop.table(table(QK3$MealsPerDlv, QK3$Weeks3Meals), margin = 1)
+prop.table(table(QK3$MealsPerDlv, QK3$Weeks3Meals), margin = 2)
+SUBSCRIBE ~ Disc + LastOrder + DA_Under20 + NumDeliv2 + 
+  Healthy + Veggie + Meaty + Special + MealsPerDlv
